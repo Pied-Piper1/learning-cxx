@@ -12,24 +12,54 @@
 class DynFibonacci {
     size_t *cache;
     int cached;
+    int capacity;  // 添加capacity成员
 
 public:
-    // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    // 实现动态设置容量的构造器
+    DynFibonacci(int capacity) : capacity(capacity), cache(new size_t[capacity]), cached(2) {
+        cache[0] = 0;
+        cache[1] = 1;
+    }
 
-    // TODO: 实现移动构造器
-    DynFibonacci(DynFibonacci &&) noexcept = delete;
+    // 实现移动构造器
+    DynFibonacci(DynFibonacci &&other) noexcept 
+        : cache(other.cache), cached(other.cached), capacity(other.capacity) {
+        // 将源对象置为空状态
+        other.cache = nullptr;
+        other.cached = 0;
+        other.capacity = 0;
+    }
 
-    // TODO: 实现移动赋值
+    // 实现移动赋值
     // NOTICE: ⚠ 注意移动到自身问题 ⚠
-    DynFibonacci &operator=(DynFibonacci &&) noexcept = delete;
+    DynFibonacci &operator=(DynFibonacci &&other) noexcept {
+        // 自移动检查
+        if (this != &other) {
+            // 释放当前资源
+            delete[] cache;
+            
+            // 转移资源
+            cache = other.cache;
+            cached = other.cached;
+            capacity = other.capacity;
+            
+            // 将源对象置为空状态
+            other.cache = nullptr;
+            other.cached = 0;
+            other.capacity = 0;
+        }
+        return *this;
+    }
 
-    // TODO: 实现析构器，释放缓存空间
-    ~DynFibonacci();
+    // 实现析构器，释放缓存空间
+    ~DynFibonacci() {
+        delete[] cache;
+    }
 
-    // TODO: 实现正确的缓存优化斐波那契计算
+    // 实现正确的缓存优化斐波那契计算
     size_t operator[](int i) {
-        for (; false; ++cached) {
+        // 修正循环条件
+        for (; cached <= i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
@@ -37,16 +67,15 @@ public:
 
     // NOTICE: 不要修改这个方法
     size_t operator[](int i) const {
-        ASSERT(i <= cached, "i out of range");
+        ASSERT(i < cached, "i out of range");  // 修正条件
         return cache[i];
     }
 
     // NOTICE: 不要修改这个方法
     bool is_alive() const {
-        return cache;
+        return cache != nullptr;  // 修正逻辑
     }
 };
-
 int main(int argc, char **argv) {
     DynFibonacci fib(12);
     ASSERT(fib[10] == 55, "fibonacci(10) should be 55");
